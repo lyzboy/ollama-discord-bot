@@ -1,6 +1,9 @@
 // import dotenv and config
-require('dotenv').config();
+import { config } from 'dotenv';
 // import Client and GatewayIntentBits from discord.js
+import {GatewayIntentBits, Client} from 'discord.js';
+
+config();
 
 // discord token
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
@@ -19,4 +22,4 @@ const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 // create event listener for when client is ready
 // log message "Bot is online"
 
-// have client login() using process.env.DISCORD_TOKEN
+// have client login() using DISCORD_TOKEN
