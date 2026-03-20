@@ -10,7 +10,11 @@ const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 
 
 // create a new discord client instance
-const client = new Client({intents:[GatewayIntentBits.Guilds]});
+const client = new Client({intents:[
+    GatewayIntentBits.Guilds, 
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
+]});
 
 
 // create event listener for when client is ready
@@ -21,3 +25,13 @@ client.once(Events.ClientReady, (readyClient)=>{
 
 // have client login() using DISCORD_TOKEN
 client.login(DISCORD_TOKEN);
+
+// listen for new messages every time it happens
+
+// prevent the infinite loop by inspecting the author of the message and break the loop if the author is a bot.
+
+// condition to check if the bot was "mentioned" in the message and proceed if it was
+
+// get the context
+    // get the channel object from the message
+    // fecth the previous 6 messages to use as context.
