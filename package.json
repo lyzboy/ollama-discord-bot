@@ -1,0 +1,16 @@
+{
+  "name": "ollama-discord-bot",
+  "version": "1.0.0",
+  "description": "A discord chat bot utilizing Ollama",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Josh Sanford",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.25.1",
+    "dotenv": "^17.3.1"
+  }
+}
