@@ -1,8 +1,10 @@
-// import dotenv
-
+// import dotenv and config
+require('dotenv').config();
 // import Client and GatewayIntentBits from discord.js
 
-// call import config()
+// discord token
+const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
+
 
 // create a new discord client instance
 /**
