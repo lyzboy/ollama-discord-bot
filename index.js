@@ -1,7 +1,8 @@
 // import dotenv and config
 import { config } from 'dotenv';
+import {fs} from 'node:fs';
 // import Client and GatewayIntentBits from discord.js
-import {GatewayIntentBits, Client, Events} from 'discord.js';
+import {GatewayIntentBits, Client, Events, Collection} from 'discord.js';
 
 config();
 
@@ -25,6 +26,8 @@ client.once(Events.ClientReady, (readyClient)=>{
 
 // have client login() using DISCORD_TOKEN
 client.login(DISCORD_TOKEN);
+
+client.commands = new Collection();
 
 // listen for new messages every time it happens
 
