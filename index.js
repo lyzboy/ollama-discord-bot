@@ -2,6 +2,7 @@
 import { config } from "dotenv";
 import * as fs from "node:fs";
 import path from "node:path";
+import { scrubIdFromMessage } from "./utils.js";
 // import Client and GatewayIntentBits from discord.js
 import {
   GatewayIntentBits,
@@ -91,14 +92,26 @@ client.on(Events.InteractionCreate, async (interaction) => {
 });
 
 // listen for new messages every time it happens
-client.on(Events.MessageCreate, async (interaction) => {
-  console.log(interaction);
+client.on(Events.MessageCreate, async (message) => {
+  // console.log(interaction);
+  console.log(`A message was sent...`);
 
   // prevent the infinite loop by inspecting the author of the message and break the loop if the author is a bot.
 
-  // condition to check if the bot was "mentioned" in the message and proceed if it was
+  if (message.author.bot) {
+    console.log(`Bot response found...`);
+    return;
+  }
 
-  // get the context
-  // get the channel object from the message
-  // fecth the previous 6 messages to use as context.
+  // condition to check if the bot was "mentioned" in the message and proceed if it was
+  if (message.mentions.has(client.user.id)) {
+    console.log(`The user is talking to me...`);
+
+    // get the content
+    const userMessage = scrubIdFromMessage(message.content);
+    console.log(`The user asked: "${userMessage}"`);
+
+    // fetch the previous 6 messages to use as context.
+    const previousMessages = await message.channel.messages.fetch({ limit: 6 });
+  }
 });
