@@ -4,7 +4,7 @@
   "description": "A discord chat bot utilizing Ollama",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node --watch index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Josh Sanford",
