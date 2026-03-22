@@ -2,7 +2,7 @@
 import { config } from "dotenv";
 import * as fs from "node:fs";
 import path from "node:path";
-import { scrubIdFromMessage } from "./utils.js";
+import { chunkMessage, scrubIdFromMessage } from "./utils.js";
 // import Client and GatewayIntentBits from discord.js
 import {
   GatewayIntentBits,
@@ -19,6 +19,8 @@ const require = createRequire(import.meta.url);
 
 // discord token
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
+
+
 
 // create a new discord client instance
 const client = new Client({
@@ -93,6 +95,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
 // listen for new messages every time it happens
 client.on(Events.MessageCreate, async (message) => {
+  let typingInterval = null;
   try {
     // prevent the infinite loop by inspecting the author of the message and break the loop if the author is a bot.
 
@@ -121,7 +124,8 @@ client.on(Events.MessageCreate, async (message) => {
         formattedMessages[i].author.id === client.user.id ? converstationHistory.push({ 'role': 'assistant', 'content': `${cleanMessage}` }) : converstationHistory.push({ 'role': 'user', 'content': `${cleanMessage}` });
       }
 
-      message.channel.sendTyping();
+      await message.channel.sendTyping();
+      typingInterval = setInterval(async ()=>await message.channel.sendTyping(),9000);
 
       // call the fetch to the local api
       const response = await fetch("http://localhost:11434/api/chat", {
@@ -139,10 +143,20 @@ client.on(Events.MessageCreate, async (message) => {
       // format and return the data
       const data = await response.json();
       const replyMessage = data.message.content;
-      await message.reply(replyMessage);
+
+      const chunkedReply = chunkMessage(replyMessage);
+      await message.reply(chunkedReply[0]);
+
+      for(let i=1; i < chunkedReply.length; i++){
+        await message.channel.send(chunkedReply[i]);
+      }
     }
   }
   catch(error){
     console.error(error.message);
+    await message.reply("I am super sorry, I had an issue and wasn't able to respond correctly.");
+  }
+  finally {
+    if(typingInterval) clearInterval(typingInterval);
   }
 });
