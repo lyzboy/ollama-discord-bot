@@ -121,6 +121,8 @@ client.on(Events.MessageCreate, async (message) => {
         formattedMessages[i].author.id === client.user.id ? converstationHistory.push({ 'role': 'assistant', 'content': `${cleanMessage}` }) : converstationHistory.push({ 'role': 'user', 'content': `${cleanMessage}` });
       }
 
+      message.channel.sendTyping();
+
       // call the fetch to the local api
       const response = await fetch("http://localhost:11434/api/chat", {
         method: "POST",
