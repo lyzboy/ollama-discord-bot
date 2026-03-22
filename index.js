@@ -93,32 +93,54 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
 // listen for new messages every time it happens
 client.on(Events.MessageCreate, async (message) => {
+  try {
+    // prevent the infinite loop by inspecting the author of the message and break the loop if the author is a bot.
 
-  // prevent the infinite loop by inspecting the author of the message and break the loop if the author is a bot.
-
-  if (message.author.bot) {
-    console.log(`Bot response found...`);
-    return;
-  }
-
-  // condition to check if the bot was "mentioned" in the message and proceed if it was
-  if (message.mentions.has(client.user.id)) {
-    console.log(`The user is talking to me...`);
-
-    // get the content
-    const userMessage = scrubIdFromMessage(message.content);
-    console.log(`The user asked: "${userMessage}"`);
-
-    // fetch the previous 6 messages to use as context.
-    const previousMessages = await message.channel.messages.fetch({ limit: 6 });
-
-    let formattedMessages = Array.from(previousMessages.values()).reverse();
-
-    let converstationHistory = []
-    for(let i =0; i < formattedMessages.length; i++){
-      // console.log(JSON.stringify(formattedMessages[i]));
-      const cleanMessage = scrubIdFromMessage(formattedMessages[i].content);
-      formattedMessages[i].author.id === client.user.id ? converstationHistory.push({'role': 'assistant', 'content':`${cleanMessage}`}) : converstationHistory.push({'role': 'user', 'content':`${cleanMessage}`});
+    if (message.author.bot) {
+      console.log(`Bot response found...`);
+      return;
     }
+
+    // condition to check if the bot was "mentioned" in the message and proceed if it was
+    if (message.mentions.has(client.user.id)) {
+      console.log(`The user is talking to me...`);
+
+      // get the content
+      const userMessage = scrubIdFromMessage(message.content);
+      console.log(`The user asked: "${userMessage}"`);
+
+      // fetch the previous 6 messages to use as context.
+      const previousMessages = await message.channel.messages.fetch({ limit: 6 });
+
+      let formattedMessages = Array.from(previousMessages.values()).reverse();
+
+      // create the conversation history
+      let converstationHistory = []
+      for (let i = 0; i < formattedMessages.length; i++) {
+        const cleanMessage = scrubIdFromMessage(formattedMessages[i].content);
+        formattedMessages[i].author.id === client.user.id ? converstationHistory.push({ 'role': 'assistant', 'content': `${cleanMessage}` }) : converstationHistory.push({ 'role': 'user', 'content': `${cleanMessage}` });
+      }
+
+      // call the fetch to the local api
+      const response = await fetch("http://localhost:11434/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: 'llama3.2',
+          messages: converstationHistory,
+          stream: false
+        }),
+      });
+
+      // format and return the data
+      const data = await response.json();
+      const replyMessage = data.message.content;
+      await message.reply(replyMessage);
+    }
+  }
+  catch(error){
+    console.error(error.message);
   }
 });
