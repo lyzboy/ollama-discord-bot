@@ -93,8 +93,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
 // listen for new messages every time it happens
 client.on(Events.MessageCreate, async (message) => {
-  // console.log(interaction);
-  console.log(`A message was sent...`);
 
   // prevent the infinite loop by inspecting the author of the message and break the loop if the author is a bot.
 
@@ -113,5 +111,14 @@ client.on(Events.MessageCreate, async (message) => {
 
     // fetch the previous 6 messages to use as context.
     const previousMessages = await message.channel.messages.fetch({ limit: 6 });
+
+    let formattedMessages = Array.from(previousMessages.values()).reverse();
+
+    let converstationHistory = []
+    for(let i =0; i < formattedMessages.length; i++){
+      // console.log(JSON.stringify(formattedMessages[i]));
+      const cleanMessage = scrubIdFromMessage(formattedMessages[i].content);
+      formattedMessages[i].author.id === client.user.id ? converstationHistory.push({'role': 'assistant', 'content':`${cleanMessage}`}) : converstationHistory.push({'role': 'user', 'content':`${cleanMessage}`});
+    }
   }
 });
