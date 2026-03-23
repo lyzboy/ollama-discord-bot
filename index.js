@@ -20,8 +20,6 @@ const require = createRequire(import.meta.url);
 // discord token
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 
-
-
 // create a new discord client instance
 const client = new Client({
   intents: [
@@ -112,31 +110,48 @@ client.on(Events.MessageCreate, async (message) => {
       const userMessage = scrubIdFromMessage(message.content);
       console.log(`The user asked: "${userMessage}"`);
 
-      // fetch the previous 6 messages to use as context.
-      const previousMessages = await message.channel.messages.fetch({ limit: 6 });
+      // fetch limit in threads can be longer for more context
+      let fetchLimit = message.channel.isThread() ? 30 : 6;
 
+      // fetch the previous messages to use as context.
+      const previousMessages = await message.channel.messages.fetch({
+        limit: fetchLimit,
+      });
+
+      // reverse fetched messages for canonical order in ai api
       let formattedMessages = Array.from(previousMessages.values()).reverse();
 
       // create the conversation history
-      let converstationHistory = []
+      let converstationHistory = [];
       for (let i = 0; i < formattedMessages.length; i++) {
         const cleanMessage = scrubIdFromMessage(formattedMessages[i].content);
-        formattedMessages[i].author.id === client.user.id ? converstationHistory.push({ 'role': 'assistant', 'content': `${cleanMessage}` }) : converstationHistory.push({ 'role': 'user', 'content': `${cleanMessage}` });
+        formattedMessages[i].author.id === client.user.id
+          ? converstationHistory.push({
+              role: "assistant",
+              content: `${cleanMessage}`,
+            })
+          : converstationHistory.push({
+              role: "user",
+              content: `${cleanMessage}`,
+            });
       }
 
       await message.channel.sendTyping();
-      typingInterval = setInterval(async ()=>await message.channel.sendTyping(),9000);
+      typingInterval = setInterval(
+        async () => await message.channel.sendTyping(),
+        9000,
+      );
 
       // call the fetch to the local api
       const response = await fetch("http://localhost:11434/api/chat", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: 'llama3.2',
+          model: "llama3.2",
           messages: converstationHistory,
-          stream: false
+          stream: false,
         }),
       });
 
@@ -147,16 +162,16 @@ client.on(Events.MessageCreate, async (message) => {
       const chunkedReply = chunkMessage(replyMessage);
       await message.reply(chunkedReply[0]);
 
-      for(let i=1; i < chunkedReply.length; i++){
+      for (let i = 1; i < chunkedReply.length; i++) {
         await message.channel.send(chunkedReply[i]);
       }
     }
-  }
-  catch(error){
+  } catch (error) {
     console.error(error.message);
-    await message.reply("I am super sorry, I had an issue and wasn't able to respond correctly.");
-  }
-  finally {
-    if(typingInterval) clearInterval(typingInterval);
+    await message.reply(
+      "I am super sorry, I had an issue and wasn't able to respond correctly.",
+    );
+  } finally {
+    if (typingInterval) clearInterval(typingInterval);
   }
 });
