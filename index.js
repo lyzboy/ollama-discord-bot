@@ -2,7 +2,7 @@
 import { config } from "dotenv";
 import * as fs from "node:fs";
 import path from "node:path";
-import { chunkMessage, scrubIdFromMessage } from "./utils.js";
+import { chunkMessage, scrubIdFromMessage, loadUserMemory, saveUserMemory } from "./utils.js";
 // import Client and GatewayIntentBits from discord.js
 import {
   GatewayIntentBits,
@@ -127,13 +127,13 @@ client.on(Events.MessageCreate, async (message) => {
         const cleanMessage = scrubIdFromMessage(formattedMessages[i].content);
         formattedMessages[i].author.id === client.user.id
           ? conversationHistory.push({
-              role: "assistant",
-              content: `${cleanMessage}`,
-            })
+            role: "assistant",
+            content: `${cleanMessage}`,
+          })
           : conversationHistory.push({
-              role: "user",
-              content: `${cleanMessage}`,
-            });
+            role: "user",
+            content: `${cleanMessage}`,
+          });
       }
 
       await message.channel.sendTyping();
