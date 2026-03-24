@@ -1,10 +1,12 @@
-export function scrubIdFromMessage(message) {
+import fs from "fs/promises"
+
+export const scrubIdFromMessage = (message)=>{
   let scrubbedMessage = message.replace(/<@[\w\d]+>/, "");
   return scrubbedMessage;
 }
 
 
-export function chunkMessage(message, maxLength = 1999) {
+export const chunkMessage = (message, maxLength = 1999)=>{
   const chunks = [];
   let currentIndex = 0;
 
@@ -41,4 +43,23 @@ export function chunkMessage(message, maxLength = 1999) {
   }
 
   return chunks;
+}
+
+export const loadUserMemory = async(userId)=>{
+  try {
+    const content = await fs.readFile(`./memory/${userId}.json`,{encoding:'utf8'});
+    return JSON.parse(content);
+  } catch (error) {
+    return {};
+  }
+}
+
+export const saveUserMemory = async (userId, dataObject)=>{
+  try{
+  const formattedObject = JSON.stringify(dataObject);
+  await fs.writeFile(`./memory/${userId}.json`,formattedObject)
+  }
+  catch(error){
+    console.log(`Unable to write to file ${userId}`);
+  }
 }
