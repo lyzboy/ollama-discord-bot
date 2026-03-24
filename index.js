@@ -135,6 +135,13 @@ client.on(Events.MessageCreate, async (message) => {
           });
       }
 
+      // get the bots memory about the user
+      const userMemory = await utils.loadUserMemory(message.author.id);
+
+      if (userMemory.facts && userMemory.facts.length > 0) {
+        conversationHistory.unshift({ role: "system", content: "You are a helpful assistant. Here is what you know about this user: " + userMemory.facts.join(" ") })
+      }
+
       await message.channel.sendTyping();
       typingInterval = setInterval(
         async () => await message.channel.sendTyping(),
