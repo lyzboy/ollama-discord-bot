@@ -122,15 +122,15 @@ client.on(Events.MessageCreate, async (message) => {
       let formattedMessages = Array.from(previousMessages.values()).reverse();
 
       // create the conversation history
-      let converstationHistory = [];
+      let conversationHistory = [];
       for (let i = 0; i < formattedMessages.length; i++) {
         const cleanMessage = scrubIdFromMessage(formattedMessages[i].content);
         formattedMessages[i].author.id === client.user.id
-          ? converstationHistory.push({
+          ? conversationHistory.push({
               role: "assistant",
               content: `${cleanMessage}`,
             })
-          : converstationHistory.push({
+          : conversationHistory.push({
               role: "user",
               content: `${cleanMessage}`,
             });
@@ -150,7 +150,7 @@ client.on(Events.MessageCreate, async (message) => {
         },
         body: JSON.stringify({
           model: "llama3.2",
-          messages: converstationHistory,
+          messages: conversationHistory,
           stream: false,
         }),
       });
@@ -160,10 +160,34 @@ client.on(Events.MessageCreate, async (message) => {
       const replyMessage = data.message.content;
 
       const chunkedReply = chunkMessage(replyMessage);
-      await message.reply(chunkedReply[0]);
 
-      for (let i = 1; i < chunkedReply.length; i++) {
-        await message.channel.send(chunkedReply[i]);
+      // if it is a large reply, it needs to be in a thread
+      if (chunkedReply.length > 1) {
+        // we are currently in a thread
+        if (message.channel.isThread()) {
+          await message.reply(chunkedReply[0]);
+          for (let i = 1; i < chunkedReply.length; i++) {
+            await message.channel.send(chunkedReply[i]);
+          }
+        }
+        // we are not in a thread, one needs to be made
+        else {
+          const threadName = userMessage.slice(0, 30) + "...";
+          await message.reply(
+            `That is a complex question! I have created a thread with the details called ${threadName}`,
+          );
+          const thread = await message.startThread({
+            name: threadName,
+            autoArchiveDuration: 1440,
+          });
+          for (let i = 0; i < chunkedReply.length; i++) {
+            await thread.send(chunkedReply[i]);
+          }
+        }
+      }
+      // it is a small reply, we can put it in the main channel
+      else {
+        await message.reply(chunkedReply[0]);
       }
     }
   } catch (error) {
