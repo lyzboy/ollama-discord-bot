@@ -195,6 +195,16 @@ client.on(Events.MessageCreate, async (message) => {
       else {
         await message.reply(chunkedReply[0]);
       }
+
+      const extraction = await utils.extractUserMemory(userMessage);
+      if (extraction.new_facts && extraction.new_facts.length > 0) {
+        if (!userMemory.facts) {
+          userMemory.facts = [];
+        }
+        userMemory.facts = [...userMemory.facts, ...extraction.new_facts];
+        await utils.saveUserMemory(message.author.id, userMemory);
+        console.log("New memories saved!", extraction.new_facts);
+      }
     }
   } catch (error) {
     console.error(error.message);

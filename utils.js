@@ -66,7 +66,21 @@ export const saveUserMemory = async (userId, dataObject) => {
 
 export const extractUserMemory = async (userMessage) => {
 
-  const memoryPrompt = `You are a data extraction bot. Analyze this user message: '${userMessage}'. Extract any personal facts, preferences, or explicit requests to remember something. Return ONLY a raw JSON object with a single key 'new_facts' containing an array of strings. If there is nothing to remember, return {"new_facts": []}. Do not include markdown formatting, code blocks, or conversational text.`
+  const memoryPrompt = `
+  You are a strict data extraction system. Analyze the user's message and extract ONLY permanent, declarative facts about the user.
+  CRITICAL RULES:
+  1. Ignore questions completely.
+  2. Ignore statements or questions the user makes about YOU, the AI, or the bot (e.g., "Do you have the internet?", "You are a bot").
+  3. Only extract statements where the user explicitly refers to themselves (e.g., using "I", "my", "mine").
+  4. If there are no concrete facts stated about the user, you MUST return exactly: {"new_facts": []}
+  5. Format facts as: "The user [fact]."
+
+  Examples:
+  Message: "My name is Josh and I drive a Ford." -> {"new_facts": ["The user's name is Josh", "The user drives a Ford"]}
+  Message: "Do you have access to the internet? Is your knowledge a snapshot?" -> {"new_facts": []}
+  Message: "You are the brains behind this bot." -> {"new_facts": []}
+
+  Analyze the following user message: "${userMessage}".`;
 
   try {
 
@@ -92,7 +106,9 @@ export const extractUserMemory = async (userMessage) => {
 
     // format and return the data
     const data = await response.json();
-    const replyMessage = data.message.content;
+    let replyMessage = data.message.content;
+    // Force-strip markdown code blocks that break JSON.parse
+    replyMessage = replyMessage.replace(/```json/gi, '').replace(/```/g, '').trim();
     return JSON.parse(replyMessage);
   } catch (error) {
     return { "new_facts": [] };
