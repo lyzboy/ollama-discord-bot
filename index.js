@@ -1,8 +1,7 @@
-// import dotenv and config
 import { config } from "dotenv";
 import * as fs from "node:fs";
 import path from "node:path";
-import { chunkMessage, scrubIdFromMessage, loadUserMemory, saveUserMemory } from "./utils.js";
+import * as utils from "./utils.js"
 // import Client and GatewayIntentBits from discord.js
 import {
   GatewayIntentBits,
@@ -107,7 +106,7 @@ client.on(Events.MessageCreate, async (message) => {
       console.log(`The user is talking to me...`);
 
       // get the content
-      const userMessage = scrubIdFromMessage(message.content);
+      const userMessage = utils.scrubIdFromMessage(message.content);
       console.log(`The user asked: "${userMessage}"`);
 
       // fetch limit in threads can be longer for more context
@@ -124,7 +123,7 @@ client.on(Events.MessageCreate, async (message) => {
       // create the conversation history
       let conversationHistory = [];
       for (let i = 0; i < formattedMessages.length; i++) {
-        const cleanMessage = scrubIdFromMessage(formattedMessages[i].content);
+        const cleanMessage = utils.scrubIdFromMessage(formattedMessages[i].content);
         formattedMessages[i].author.id === client.user.id
           ? conversationHistory.push({
             role: "assistant",
@@ -159,7 +158,7 @@ client.on(Events.MessageCreate, async (message) => {
       const data = await response.json();
       const replyMessage = data.message.content;
 
-      const chunkedReply = chunkMessage(replyMessage);
+      const chunkedReply = utils.chunkMessage(replyMessage);
 
       // if it is a large reply, it needs to be in a thread
       if (chunkedReply.length > 1) {
