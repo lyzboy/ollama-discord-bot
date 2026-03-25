@@ -205,6 +205,7 @@ client.on(Events.MessageCreate, async (message) => {
     }
   } catch (error) {
     console.error(error.message);
+    console.error("Have you checked that Ollama is running?")
     await message.reply(
       "I am super sorry, I had an issue and wasn't able to respond correctly.",
     );
