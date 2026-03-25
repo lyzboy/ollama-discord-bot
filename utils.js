@@ -64,23 +64,26 @@ export const saveUserMemory = async (userId, dataObject) => {
   }
 }
 
-export const extractUserMemory = async (userMessage) => {
+export const extractUserMemory = async (userMessage, currentMemory) => {
 
   const memoryPrompt = `
-  You are a strict data extraction system. Analyze the user's message and extract ONLY permanent, declarative facts about the user.
-  CRITICAL RULES:
-  1. Ignore questions completely.
-  2. Ignore statements or questions the user makes about YOU, the AI, or the bot (e.g., "Do you have the internet?", "You are a bot").
-  3. Only extract statements where the user explicitly refers to themselves (e.g., using "I", "my", "mine").
-  4. If there are no concrete facts stated about the user, you MUST return exactly: {"new_facts": []}
-  5. Format facts as: "The user [fact]."
+    You are a strict data consolidation AI. Your job is to manage a user's memory file based on their latest message.
+    CURRENT MEMORY: ${JSON.stringify(currentMemory.facts)}
+    USER MESSAGE: "${userMessage}"
 
-  Examples:
-  Message: "My name is Josh and I drive a Ford." -> {"new_facts": ["The user's name is Josh", "The user drives a Ford"]}
-  Message: "Do you have access to the internet? Is your knowledge a snapshot?" -> {"new_facts": []}
-  Message: "You are the brains behind this bot." -> {"new_facts": []}
+    CRITICAL RULES:
+    1. CREATE: Extract new permanent, declarative facts about the user from the message. Format them starting with "The user" or "The user's".
+    2. UPDATE: If the user message contradicts an existing fact in the CURRENT MEMORY, replace the old fact with the new truth.
+    3. DELETE: If the user explicitly asks you to forget, delete, or remove a specific fact, remove it completely from the array. If they ask you to forget everything, clear the array.
+    4. KEEP: Retain all existing facts from the CURRENT MEMORY that are not updated or deleted.
+    5. IGNORE: Ignore questions, greetings, and statements the user makes about YOU (the AI).
 
-  Analyze the following user message: "${userMessage}".`;
+    Examples:
+    Message: "My name is Josh and I drive a Ford." -> {"new_facts": ["The user's name is Josh", "The user drives a Ford"]}
+    Message: "Do you have access to the internet? Is your knowledge a snapshot?" -> {"new_facts": []}
+    Message: "You are the brains behind this bot." -> {"new_facts": []}
+
+    Return ONLY a raw JSON object with a single key 'new_facts' containing the completely updated array of strings. Do not include markdown formatting or conversational text.`;
 
   try {
 
