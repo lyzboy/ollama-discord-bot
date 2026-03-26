@@ -4,5 +4,6 @@ LyzAssistant has many features that allow you interact with it in different ways
   - In main channel : the bot will utilize the last 6 messages in the channel for context, along with the memory stored for the user who is chatting, to reply to your inquiry.
   - In the thread : the bot will utilize the last 30 messages in the thread for context, along with the memory stored for the user who is chatting, to reply to your inquiry.
 - **/help** : outputs a list of commands that the bot will accept.
-- **/memory** : outputs the long term memory that the bot has saved for the asking user.
-  - The bot will look at the context of the user's chat and will automatically pull memory items from the chat and store it locally where the LLM is stored.
+- **/memory** : Outputs the long term memory that the bot has saved for the asking user.
+  - The bot will look at the context of the user's chat and will automatically pull memory items from the chat and store it locally where the LLM is stored. The user can chat with the bot to alter these memories.
+- **/forget** : This command will erase all memories about the user from the bot. The bot will no longer have memories about the user. This does not prevent the bot from keeping long term memories about the user.
